@@ -31,7 +31,7 @@ function saveBindings(data) {
 const app = express();
 app.set("trust proxy", true);
 app.disable("x-powered-by");
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 
 // Хранилища
 const bannedIPs = new Set(config.blockedIPs || []);
@@ -281,6 +281,82 @@ app.get("/api/scripts", (req, res) => {
     });
 
   res.json(list);
+});
+
+// ============================================================
+// POST /api/scripts/upload — загрузить скрипт (админ)
+// ============================================================
+app.post("/api/scripts/upload", (req, res) => {
+  if (req.get("x-admin-key") !== config.adminKey) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  const { name, content } = req.body || {};
+  if (!name || !content) {
+    return res.status(400).json({ error: "Missing name or content" });
+  }
+
+  if (!name.endsWith(".lua")) {
+    return res.status(400).json({ error: "Only .lua files allowed" });
+  }
+
+  if (content.length > 1024 * 1024) {
+    return res.status(400).json({ error: "File too large (max 1MB)" });
+  }
+
+  // Безопасность: проверка имени файла
+  const safeName = path.basename(name);
+  const filePath = path.join(SCRIPTS_DIR, safeName);
+  if (!filePath.startsWith(SCRIPTS_DIR)) {
+    return res.status(400).json({ error: "Invalid filename" });
+  }
+
+  // Создание папки если её нет
+  if (!fs.existsSync(SCRIPTS_DIR)) {
+    fs.mkdirSync(SCRIPTS_DIR, { recursive: true });
+  }
+
+  try {
+    fs.writeFileSync(filePath, content, "utf8");
+    console.log(`[UPLOAD] ${safeName} by admin`);
+    res.json({ ok: true, name: safeName });
+  } catch (e) {
+    console.error(`[UPLOAD ERROR] ${e.message}`);
+    res.status(500).json({ error: "Upload failed" });
+  }
+});
+
+// ============================================================
+// POST /api/scripts/delete — удалить скрипт (админ)
+// ============================================================
+app.post("/api/scripts/delete", (req, res) => {
+  if (req.get("x-admin-key") !== config.adminKey) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  const { name } = req.body || {};
+  if (!name) {
+    return res.status(400).json({ error: "Missing name" });
+  }
+
+  const safeName = path.basename(name);
+  const filePath = path.join(SCRIPTS_DIR, safeName);
+  if (!filePath.startsWith(SCRIPTS_DIR)) {
+    return res.status(400).json({ error: "Invalid filename" });
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "not found" });
+  }
+
+  try {
+    fs.unlinkSync(filePath);
+    console.log(`[DELETE] ${safeName} by admin`);
+    res.json({ ok: true, name: safeName });
+  } catch (e) {
+    console.error(`[DELETE ERROR] ${e.message}`);
+    res.status(500).json({ error: "Delete failed" });
+  }
 });
 
 // ============================================================
