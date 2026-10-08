@@ -28,6 +28,15 @@
             <div id="admin-panel" class="hidden">
                 <button id="logout-btn" class="danger">Выйти</button>
 
+                <h2>Загрузить скрипт</h2>
+                <div class="upload-box">
+                    <div class="upload-area" id="upload-area">
+                        <input type="file" id="file-input" accept=".lua" style="display: none;">
+                        <p>📁 Перетащи .lua файл сюда или нажми для выбора</p>
+                    </div>
+                    <button id="upload-btn" class="small" style="margin-top: 12px; display: none;">Загрузить</button>
+                </div>
+
                 <h2>Привязки HWID</h2>
                 <div id="bindings-list" class="bindings-list">
                     <div class="loading">Загрузка…</div>
