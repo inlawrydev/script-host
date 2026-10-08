@@ -50,7 +50,7 @@ async function initIndexPage() {
 
         if (scripts.length === 0) {
             list.innerHTML =
-                '<div class="loading">Пока нет скриптов. Добавь .lua в папку scripts/</div>';
+                '<div class="loading">Пока нет скриптов. Добавь через админку!</div>';
             return;
         }
 
@@ -113,11 +113,11 @@ async function initScriptPage() {
 
 function buildLoader(scriptName) {
     return `-- Загрузчик для ${scriptName}
--- Замени API_URL, TOKEN, SECRET на свои значения из config.json
+-- Замени значения ниже на свои из config.json
 
-local API_URL = "https://твой-домен.com"
-local TOKEN   = "ВСТАВЬ_AUTH_TOKEN_СЮДА"
-local SECRET  = "ВСТАВЬ_HMAC_SECRET_СЮДА"
+local API_URL = "https://твой-домен.com"  -- URL хоста
+local TOKEN   = "41bcde6302bad3d97c..."    -- твой токен
+local SECRET  = "12637a5efa78240f..."      -- твой hmac secret
 local SCRIPT  = "${scriptName}"
 
 local function detectExecutor()
@@ -172,7 +172,7 @@ local authResp = http({
     Method = "POST",
     Headers = {
         ["Content-Type"] = "application/json",
-        ["User-Agent"]   = "Roblox/WinInet " .. executor,
+        ["User-Agent"]   = "Roblox",
     },
     Body = game:GetService("HttpService"):JSONEncode({
         token = TOKEN, hwid = hwid, executor = executor,
@@ -193,7 +193,7 @@ local scriptResp = http({
     Method = "GET",
     Headers = {
         ["X-Session"]  = session,
-        ["User-Agent"] = "Roblox/WinInet " .. executor,
+        ["User-Agent"] = "Roblox",
     },
 })
 
@@ -210,6 +210,7 @@ loadstring(scriptResp.Body)()
 // Админка
 // ============================================================
 let adminKey = sessionStorage.getItem("adminKey") || "";
+let selectedFile = null;
 
 async function initAdminPage() {
     const loginBtn = document.getElementById("login-btn");
@@ -237,6 +238,105 @@ async function initAdminPage() {
         document.getElementById("admin-panel").classList.add("hidden");
         document.getElementById("auth-box").classList.remove("hidden");
     });
+
+    // Drag & drop для загрузки
+    const uploadArea = document.getElementById("upload-area");
+    const fileInput = document.getElementById("file-input");
+    const uploadBtn = document.getElementById("upload-btn");
+
+    if (uploadArea && fileInput) {
+        uploadArea.addEventListener("click", () => fileInput.click());
+        uploadArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            uploadArea.style.background = "var(--bg-hover)";
+        });
+        uploadArea.addEventListener("dragleave", () => {
+            uploadArea.style.background = "";
+        });
+        uploadArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            uploadArea.style.background = "";
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFileSelect(files[0], uploadArea, uploadBtn);
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) handleFileSelect(e.target.files[0], uploadArea, uploadBtn);
+        });
+
+        uploadBtn.addEventListener("click", () => {
+            if (selectedFile) uploadScript(selectedFile, uploadArea, uploadBtn, fileInput);
+        });
+    }
+}
+
+function handleFileSelect(file, uploadArea, uploadBtn) {
+    if (!file.name.endsWith(".lua")) {
+        alert("Только .lua файлы!");
+        return;
+    }
+    if (file.size > 1024 * 1024) {
+        alert("Максимум 1 MB!");
+        return;
+    }
+    selectedFile = file;
+    uploadArea.innerHTML = `✅ ${escapeHtml(file.name)} (${formatSize(file.size)})`;
+    uploadBtn.style.display = "inline-block";
+}
+
+async function uploadScript(file, uploadArea, uploadBtn, fileInput) {
+    if (!adminKey) {
+        alert("Сначала авторизуйся!");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = "Загрузка...";
+
+            const res = await fetch("/api/scripts/upload", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Admin-Key": adminKey,
+                },
+                body: JSON.stringify({
+                    name: file.name,
+                    content: e.target.result,
+                }),
+            });
+
+            if (res.status === 403) {
+                alert("Неверный adminKey");
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = "Загрузить";
+                return;
+            }
+
+            if (!res.ok) {
+                alert("Ошибка: " + res.status);
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = "Загрузить";
+                return;
+            }
+
+            alert("✅ Скрипт загружен!");
+            selectedFile = null;
+            uploadArea.innerHTML = `📁 Перетащи .lua файл сюда или нажми для выбора`;
+            uploadBtn.style.display = "none";
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = "Загрузить";
+            fileInput.value = "";
+            await loadAdminScripts();
+        } catch (err) {
+            alert("Ошибка: " + err.message);
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = "Загрузить";
+        }
+    };
+    reader.readAsText(file);
 }
 
 async function showAdmin() {
@@ -315,7 +415,10 @@ async function loadAdminScripts() {
                 .map(
                     (s) => `
             <div class="script-card">
-                <h3>${escapeHtml(s.name)}</h3>
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <h3 style="flex: 1;">${escapeHtml(s.name)}</h3>
+                    <button class="small danger" onclick="deleteScript('${s.name}')" style="margin-left: 8px;">🗑️</button>
+                </div>
                 <div class="meta"><span>${s.lines} строк</span><span>${formatSize(s.size)}</span></div>
             </div>
         `
@@ -336,6 +439,36 @@ async function toggleBan(token, ban) {
             return;
         }
         await loadBindings();
+    } catch (e) {
+        alert("Ошибка: " + e.message);
+    }
+}
+
+async function deleteScript(name) {
+    if (!confirm(`Удалить скрипт "${name}"?`)) return;
+
+    try {
+        const res = await fetch("/api/scripts/delete", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Key": adminKey,
+            },
+            body: JSON.stringify({ name }),
+        });
+
+        if (res.status === 403) {
+            alert("Неверный adminKey");
+            return;
+        }
+
+        if (!res.ok) {
+            alert("Ошибка: " + res.status);
+            return;
+        }
+
+        alert("✅ Скрипт удалён!");
+        await loadAdminScripts();
     } catch (e) {
         alert("Ошибка: " + e.message);
     }
