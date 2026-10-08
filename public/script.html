@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Host — Загрузчик</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">⚡ Script Host</div>
+        <nav>
+            <a href="index.html">Каталог</a>
+            <a href="admin.html">Админ</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="script-detail">
+            <a href="index.html" class="back">← Назад</a>
+            <h1 id="script-name">Загрузка…</h1>
+
+            <div class="info-grid">
+                <div><span>Размер:</span> <b id="script-size">—</b></div>
+                <div><span>Строк:</span> <b id="script-lines">—</b></div>
+                <div><span>Обновлён:</span> <b id="script-updated">—</b></div>
+            </div>
+
+            <h2>Загрузчик для executor'а</h2>
+            <p class="hint">
+                Скопируй код ниже и вставь в executor. Замени
+                <code>API_URL</code>, <code>TOKEN</code>, <code>SECRET</code>
+                на свои значения из config.json.
+            </p>
+
+            <div class="code-box">
+                <button id="copy-btn" class="copy-btn">📋 Копировать</button>
+                <pre id="loader-code"></pre>
+            </div>
+
+            <h2>Прямой URL</h2>
+            <div class="url-box">
+                <code id="direct-url"></code>
+            </div>
+            <p class="hint warn">
+                ⚠️ Прямой URL <b>не работает</b> без заголовков
+                X-Auth-Token, X-Timestamp, X-Signature и сессии.
+                Используй загрузчик выше.
+            </p>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", initScriptPage);
+    </script>
+</body>
+</html>

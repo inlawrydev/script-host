@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Host — Админка</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">⚡ Script Host</div>
+        <nav>
+            <a href="index.html">Каталог</a>
+            <a href="admin.html" class="active">Админ</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="admin">
+            <h1>Панель администратора</h1>
+
+            <div class="auth-box" id="auth-box">
+                <label for="admin-key">Admin Key:</label>
+                <input type="password" id="admin-key" placeholder="Вставь adminKey из config.json">
+                <button id="login-btn">Войти</button>
+            </div>
+
+            <div id="admin-panel" class="hidden">
+                <button id="logout-btn" class="danger">Выйти</button>
+
+                <h2>Привязки HWID</h2>
+                <div id="bindings-list" class="bindings-list">
+                    <div class="loading">Загрузка…</div>
+                </div>
+
+                <h2>Скрипты</h2>
+                <div id="admin-scripts" class="scripts-grid"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", initAdminPage);
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+node_modules/
+.env
+.env.local
+hwid_bindings.json
+.DS_Store
+*.log

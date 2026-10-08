@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Host — Каталог скриптов</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">⚡ Script Host</div>
+        <nav>
+            <a href="index.html" class="active">Каталог</a>
+            <a href="admin.html">Админ</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Приватный хостинг скриптов</h1>
+            <p>Защищённая доставка Lua-скриптов с привязкой к HWID</p>
+        </section>
+
+        <section class="scripts-section">
+            <h2>Доступные скрипты</h2>
+            <div id="scripts-list" class="scripts-grid">
+                <div class="loading">Загрузка…</div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Script Host · Все запросы логируются</p>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", initIndexPage);
+    </script>
+</body>
+</html>

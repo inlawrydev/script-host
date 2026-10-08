@@ -1,0 +1,27 @@
+{
+  "port": 3000,
+  "authTokens": [
+    "41bcde6302bad3d97c545743990ec81c9df3773a0ad45b09024d2efa3f9ddb2c"
+  ],
+  "hmacSecret": "12637a5efa78240f187086ef80f18a36abf8ac96290e9a9e32ad9ce612e1e671eca247b695fc2e4e00ab1be1a4d668c61577ef7bcf135ef84853933c8aa2c753",
+  "adminKey": "41bcde6302bad3d97c545743990ec81c9df3773a0ad45b09024d2efa3f9ddb2c",
+  "maxTimestampSkewMs": 15000,
+  "allowedUserAgents": [
+    "Roblox",
+    "Synapse",
+    "Script-Ware",
+    "Krnl",
+    "Fluxus",
+    "Solara",
+    "Wave",
+    "Delta"
+  ],
+  "defaultAllowedExecutors": [
+    "Synapse",
+    "ScriptWare",
+    "Solara",
+    "Wave",
+    "Delta"
+  ],
+  "blockedIPs": []
+}
